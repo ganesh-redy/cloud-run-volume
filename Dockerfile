@@ -8,6 +8,6 @@ RUN pip install -r requir.txt
 
 RUN echo "hello i am send file from image" > cat /app/okay.txt
 
-EXPOSE 8080
+EXPOSE 8081
 
 CMD ["python","-u","app.py"]
