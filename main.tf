@@ -5,44 +5,31 @@ provider "google" {
   
 }
 
-resource "google_cloud_run_service" "service1" {
-  name     = "cloudrun-srv"
-  location = "us-central1"
+resource "google_cloud_run_service" "cloud_run" {
+  name     = var.image_name
+  location = var.region
 
   template {
-    metadata {
-      annotations = {
-        "autoscaling.knative.dev/minScale" = "1"  # Minimum 1 instance
-        "autoscaling.knative.dev/maxScale" = "5"  # Maximum 5 instances
-      }
-    }
-
     spec {
       containers {
-        name  = "hello-1"
-        image = "us-central1-docker.pkg.dev/mythic-inn-420620/my-docker-repo1/okay:${var.tag}"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/my-docker-repo1/${var.image_name}:${var.image_tag}"
         
         ports {
-          container_port = 8080
+          container_port = 8080  # ✅ Ensure this is set!
         }
-
-        env {
-          name  = "PORT"
-          value = "8080"
-        }
-
-        volume_mounts {
+ volume_mounts {
           name       = "shared-volume"
           mount_path = "/app"
         }
       }
-
-      volumes {
+ volumes {
         name = "shared-volume"
         empty_dir {
           medium     = "Memory"
           size_limit = "500Mi"
         }
+
+        
       }
     }
   }
@@ -51,7 +38,8 @@ resource "google_cloud_run_service" "service1" {
     percent         = 100
     latest_revision = true
   }
-}
+
+
 
 
 resource "google_cloud_run_service_iam_member" "all" {
