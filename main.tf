@@ -23,7 +23,7 @@ resource "google_cloud_run_service" "service1" {
         image = "us-central1-docker.pkg.dev/mythic-inn-420620/my-docker-repo1/okay:${var.tag}"
         
         ports {
-          container_port = 8082
+          container_port = 8080
         }
 
         env {
