@@ -43,10 +43,14 @@ pipeline{
             }
         }
         stage ("push to artifacte"){
-            sh ''' 
+            steps{
+                 sh ''' 
               docker tag ${IMAGE_NAME}:${BUILD_NUMBER} us-central1-docker.pkg.dev/mythic-inn-420620/my-docker-repo1/okay:${BUILD_NUMBER}
              docker push  us-central1-docker.pkg.dev/mythic-inn-420620/my-docker-repo1/okay:${BUILD_NUMBER}
             ''' 
+
+            }
+           
         }
         stage ("terraform"){
             steps{
