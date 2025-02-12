@@ -1,0 +1,64 @@
+pipeline{
+    agent any
+    environment{
+        IMAGE_NAME="okay"
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-owner')
+    }
+    stages{
+        stage ("from git take files"){
+            steps{
+                git branch: "main", url:"https://github.com/ganesh-redy/cloud-run-volume.git"
+            }
+        }
+        stage ("image creation"){
+            steps{
+                sh '''
+                 docker bulid -t ${IMAGE_NAME}:${BUILD_NUMBER} .
+
+                '''
+            }
+        }
+        
+        stage ("authenication with dockerhub"){
+            steps{
+                withCredentials([usernamePassword(
+                    credentialsId: "docker-hub-credential",
+                    usernameVariable: "DOCKER_USER",
+                    passwordVariable: "DOCKER_PASS"
+                )]){
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u"$DOCKER_USER"   --password-stdin 
+                    '''
+                }
+            }
+        }
+        stage ("push to dockerhub"){
+            steps{
+                sh '''
+                   docker tag ${IMAGE_NAME}:${BUILD_NUMBER} ganesh6498/${IMAGE_NAME}:${BUILD_NUMBER}
+                   docker push ganesh6498/$I{MAGE_NAME}:${BUILD_NUMBER}
+                   
+
+                '''
+            }
+        }
+        stage ("push to artifacte"){
+            sh ''' 
+              docker tag ${IMAGE_NAME}:${BUILD_NUMBER} us-central1-docker.pkg.dev/mythic-inn-420620/my-docker-repo1/okay:${BUILD_NUMBER}
+             docker push  us-central1-docker.pkg.dev/mythic-inn-420620/my-docker-repo1/okay:${BUILD_NUMBER}
+            ''' 
+        }
+        stage ("terraform"){
+            steps{
+                sh '''
+                terraform init
+                terraform plan -var="tag=${BUILD_NUMBER}"
+                terraform plan -var="tag=${BUILD_NUMBER}" --auto-approve
+
+
+
+                '''
+            }
+        }
+    }
+}
